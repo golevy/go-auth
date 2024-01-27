@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"jwt/database"
-	"jwt/routes"
+	"go-auth/database"
+	"go-auth/routes"
 )
 
 func main() {
@@ -14,8 +14,7 @@ func main() {
 
 	routes.Setup(app)
 
-	err := app.Listen(":8000")
-	if err != nil {
+	if err := app.Listen(":8000"); err != nil {
 		fmt.Println(err)
 		return
 	}
