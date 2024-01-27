@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var DB *gorm.DB // DB is a global variable to hold the database connection.
+
 func Connect() {
 	dsn := "host=localhost user=levylv password=123456 dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	connection, err := gorm.Open(postgres.Open(dsn), &gorm.Config{}) // dns: data source name
@@ -14,6 +16,8 @@ func Connect() {
 	if err != nil {
 		panic("Could not connect to the database")
 	}
+
+	DB = connection
 
 	// AutoMigrate ensures the database schema matches the User model structure.
 	// This creates or updates the User table in the database based on the User struct definition in models package.
