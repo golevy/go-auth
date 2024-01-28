@@ -2,15 +2,32 @@ package database
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"go-auth/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
 )
 
 var DB *gorm.DB // DB is a global variable to hold the database connection.
 
 func Connect() {
-	dsn := "host=localhost user=levylv password=123456 dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	err := godotenv.Load() // This will load the .env file
+	if err != nil {
+		panic("Could not load .env file")
+	}
+
+	// Use os.Getenv to read the environment variables
+	// Use os.Getenv to read the environment variables
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_SSLMODE"),
+		os.Getenv("DB_TIMEZONE"))
+
 	connection, err := gorm.Open(postgres.Open(dsn), &gorm.Config{}) // dns: data source name
 
 	if err != nil {
