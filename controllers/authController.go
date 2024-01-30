@@ -2,9 +2,12 @@ package controllers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"go-auth/database"
 	"go-auth/models"
 	"golang.org/x/crypto/bcrypt"
+	"strconv"
+	"time"
 )
 
 func Register(c *fiber.Ctx) error {
@@ -36,6 +39,8 @@ func Login(c *fiber.Ctx) error {
 
 	var user models.User
 
+	const SecretKey = "jwt_secret_key"
+
 	// SELECT * FROM users WHERE email = 'specified_email_address' LIMIT 1;
 	database.DB.Where("email =  ?", data["email"]).First(&user)
 
@@ -53,5 +58,19 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(user)
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
+		Issuer:    strconv.Itoa(int(user.Id)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)), // 1 day
+	})
+
+	token, err := claims.SignedString([]byte(SecretKey))
+
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "could not login",
+		})
+	}
+
+	return c.JSON(token)
 }
