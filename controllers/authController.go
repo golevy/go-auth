@@ -6,6 +6,7 @@ import (
 	"go-auth/database"
 	"go-auth/models"
 	"golang.org/x/crypto/bcrypt"
+	"os"
 	"strconv"
 	"time"
 )
@@ -39,7 +40,7 @@ func Login(c *fiber.Ctx) error {
 
 	var user models.User
 
-	const SecretKey = "jwt_secret_key"
+	var SecretKey = os.Getenv("AUTH_SECRET")
 
 	// SELECT * FROM users WHERE email = 'specified_email_address' LIMIT 1;
 	database.DB.Where("email =  ?", data["email"]).First(&user)
@@ -72,5 +73,16 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(token)
+	cookie := fiber.Cookie{
+		Name:     "jwt",
+		Value:    token,
+		Expires:  time.Now().Add(time.Hour * 24),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookie)
+
+	return c.JSON(fiber.Map{
+		"message": "success",
+	})
 }
