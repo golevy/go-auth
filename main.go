@@ -17,6 +17,7 @@ func main() {
 
 	database.Connect()
 
+	// Default config
 	app := fiber.New()
 
 	app.Use(cors.New(cors.Config{
