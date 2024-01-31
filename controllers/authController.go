@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var SecretKey = os.Getenv("AUTH_SECRET")
+
 func Register(c *fiber.Ctx) error {
 	var data map[string]string
 
@@ -39,8 +41,6 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	var user models.User
-
-	var SecretKey = os.Getenv("AUTH_SECRET")
 
 	// SELECT * FROM users WHERE email = 'specified_email_address' LIMIT 1;
 	database.DB.Where("email =  ?", data["email"]).First(&user)
@@ -85,4 +85,27 @@ func Login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "success",
 	})
+}
+
+func User(c *fiber.Ctx) error {
+	cookie := c.Cookies("jwt") // Cookies are used for getting a cookie value by key
+
+	token, err := jwt.ParseWithClaims(cookie, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	claims := token.Claims.(*jwt.RegisteredClaims)
+
+	var user models.User
+
+	database.DB.Where("id = ?", claims.Issuer).First(&user)
+
+	return c.JSON(user)
 }
